@@ -9,10 +9,8 @@
 # Base de dados: 
 # Activity recognition with healthy older people using a batteryless
 # wearable sensor Data Set
-#
 
-#%%
-# *********************************
+#%%********************************
 # *** Importação de bibliotecas ***
 # *********************************
 
@@ -20,17 +18,17 @@ import glob
 import pandas as pd
 import numpy as np
 
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 
-#%%
-# ***********************************
-# *** Pré-processamento dos dados ***
-# ***********************************
+#%%*******************************
+# *** Leitura da base de dados ***
+# ********************************
 
 # Salvar todos os data paths dos arquivos
 data_path_arquivos = sorted(glob.glob('S*_Dataset/d*'))
@@ -65,9 +63,9 @@ df = df[['sala', 'sexo', 'tempo', 'frontal', 'vertical', 'lateral', 'antena',
 X = df.values[:, 0:-1]
 y = df.values[:, -1]
 
-#%% *********************************************************
-# *** Salvar dados processados em arquivos treino e teste ***
-# ***********************************************************
+#%% **************************************
+# *** Separação dos dados treino/teste ***
+# ****************************************
 
 seed = 75128
 X_treino, X_teste, y_treino, y_teste = train_test_split(X, y, test_size=0.3, 
@@ -77,9 +75,10 @@ X_treino, X_teste, y_treino, y_teste = train_test_split(X, y, test_size=0.3,
 y_treino = np.reshape(y_treino, (y_treino.shape[0], 1))
 y_teste = np.reshape(y_teste, (y_teste.shape[0], 1))
 
-y_treino = y_treino.astype(int)
+#%% ****************************
+# *** Normalização dos dados ***
+# ******************************
 
-#%% *** Normalização dos dados ***
 MinMax = MinMaxScaler(feature_range=(0, 1))
 
 # É importante que o fit seja realizado somente nos dados de treino
@@ -89,6 +88,37 @@ MinMax.fit(X_treino)
 # dados de treino e teste
 X_treino_escalonado = MinMax.transform(X_treino)
 X_teste_escalonado = MinMax.transform(X_teste)
+
+#%% **************************
+# *** Seleção de Atributos ***
+# ****************************
+
+# Usar o RandomForest para ver importância de features na classificação
+
+clf = RandomForestClassifier(n_estimators=1000, random_state=seed, n_jobs=-1)
+
+clf.fit(X_treino_escalonado, y_treino)
+
+importancia_atributos = []
+
+plt.rcParams['figure.figsize'] = 12, 8
+
+# Lista com importância de cada feature
+for feature in zip(df.columns, clf.feature_importances_):
+    plt.bar(feature[0], feature[1])
+    plt.title('Importância dos atributos usando Random Forest', size=16)
+    plt.xlabel('Atributos')
+    plt.ylabel('Nível de importância')
+    importancia_atributos.append(feature)
+
+plt.show()
+
+importancia_atributos = sorted(importancia_atributos, key=lambda x:x[1], 
+                               reverse=True)
+
+#%% ************************
+# *** Salvar os arquivos ***
+# **************************
 
 tipos_dados = ['%d', '%d', '%10.9f', '%10.9f', '%10.9f', '%10.9f', '%10.9f', 
                '%10.9f', '%10.9f', '%10.9f', '%d']
@@ -109,5 +139,6 @@ pca = PCA().fit(X_treino_escalonado)
 plt.plot(np.cumsum(pca.explained_variance_ratio_))
 plt.xlabel('Número de componentes')
 plt.ylabel('Variância explicada cumulativa')
-plt.title('Análise da variância explicada com PCA\n(normalização MinMax)', size=16)
+plt.title('Análise da variância explicada com PCA\n(normalização MinMax)', 
+          size=16)
 plt.show()
