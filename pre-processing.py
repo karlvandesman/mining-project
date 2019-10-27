@@ -9,10 +9,8 @@
 # Base de dados: 
 # Activity recognition with healthy older people using a batteryless
 # wearable sensor Data Set
-#
 
-#%%
-# *********************************
+#%%********************************
 # *** Importação de bibliotecas ***
 # *********************************
 
@@ -20,17 +18,19 @@ import glob
 import pandas as pd
 import numpy as np
 
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
 
-#%%
-# ***********************************
-# *** Pré-processamento dos dados ***
-# ***********************************
+#%%*******************************
+# *** Leitura da base de dados ***
+# ********************************
 
 # Salvar todos os data paths dos arquivos
 data_path_arquivos = sorted(glob.glob('S*_Dataset/d*'))
@@ -65,21 +65,22 @@ df = df[['sala', 'sexo', 'tempo', 'frontal', 'vertical', 'lateral', 'antena',
 X = df.values[:, 0:-1]
 y = df.values[:, -1]
 
-#%% *********************************************************
-# *** Salvar dados processados em arquivos treino e teste ***
-# ***********************************************************
+#%% **************************************
+# *** Separação dos dados treino/teste ***
+# ****************************************
 
 seed = 75128
 X_treino, X_teste, y_treino, y_teste = train_test_split(X, y, test_size=0.3, 
                                                         random_state=seed)
 
 # Fixando as dimensões das classes como (n_exemplos x 1)
-y_treino = np.reshape(y_treino, (y_treino.shape[0], 1))
-y_teste = np.reshape(y_teste, (y_teste.shape[0], 1))
+y_treino = y_treino.reshape(-1, 1)
+y_teste = y_teste.reshape(-1, 1)
 
-y_treino = y_treino.astype(int)
+#%% ****************************
+# *** Normalização dos dados ***
+# ******************************
 
-#%% *** Normalização dos dados ***
 MinMax = MinMaxScaler(feature_range=(0, 1))
 
 # É importante que o fit seja realizado somente nos dados de treino
@@ -90,24 +91,74 @@ MinMax.fit(X_treino)
 X_treino_escalonado = MinMax.transform(X_treino)
 X_teste_escalonado = MinMax.transform(X_teste)
 
+#%% **************************
+# *** Seleção de Atributos ***
+# ****************************
+
+# Usar o RandomForest para ver importância de features na classificação
+
+clf = RandomForestClassifier(n_estimators=1000, random_state=seed, n_jobs=-1)
+
+# Treinando o classificador, com dados de treino
+clf.fit(X_treino_escalonado, np.ravel(y_treino))
+
+importancia_RF = []
+
+# Lista com níveis de importância
+for feature in zip(df.columns, clf.feature_importances_):
+    plt.bar(feature[0], feature[1], color='blue', edgecolor='k')
+    importancia_RF.append(feature[1])
+
+plt.rcParams['figure.figsize'] = 12, 8
+
+plt.bar(df.columns.values[0:-1], importancia_RF, color='b', edgecolor='k')
+plt.title('Importância dos atributos usando Random Forest', size=16)
+plt.xlabel('Atributos')
+plt.ylabel('Nível de importância')
+plt.show()
+
+# Usar o teste chi2 (X²) e selecionar os K melhores atributos
+teste_chi2 = SelectKBest(chi2, k=8).fit(X_treino_escalonado, y_treino)
+
+plt.bar(df.columns.values[0:-1], teste_chi2.scores_, color='g', edgecolor='k')
+plt.title('Teste de independência usando qui-quadrado', size=16)
+plt.xlabel('Atributos')
+plt.ylabel('Valor qui-quadrado')
+plt.show()
+
+# Os valores vão ser substituídos porque o teste_chi2 e o nível de importância
+# com o Random Forest estavam de acordo com as 8 melhores features
+X_treino_escalonado = teste_chi2.transform(X_treino_escalonado)
+X_teste_escalonado = teste_chi2.transform(X_teste_escalonado)
+
+#%% ************************
+# *** Salvar os arquivos ***
+# **************************
+
+# Especificando os tipos de dados de cada coluna
 tipos_dados = ['%d', '%d', '%10.9f', '%10.9f', '%10.9f', '%10.9f', '%10.9f', 
-               '%10.9f', '%10.9f', '%10.9f', '%d']
+               '%10.9f', '%d']
+
+# Passando o string de cabeçalho para ser lido da maneira correta, 
+# com os atributos mais significantes
+colunas_cabecalho = ','.join(df.columns[0:8]) + ','+ df.columns[-1]
 
 # Salvar os dados de treino e teste em arquivos .csv
 np.savetxt("Dataset_processado/dataset_treino_processado.csv", 
            np.hstack((X_treino_escalonado, y_treino)), comments='',
-           fmt=tipos_dados, delimiter=",", header=','.join(df.columns))
+           fmt=tipos_dados, delimiter=",", header=colunas_cabecalho)
 np.savetxt("Dataset_processado/dataset_teste_processado.csv", 
            np.hstack((X_teste_escalonado, y_teste)), comments='',
-           fmt=tipos_dados, delimiter=",", header=','.join(df.columns))
+           fmt=tipos_dados, delimiter=",", header=colunas_cabecalho)
 
 #%% ***************************************
 # *** Análise de Componentes Principais ***
 # *****************************************
 
 pca = PCA().fit(X_treino_escalonado)
-plt.plot(np.cumsum(pca.explained_variance_ratio_))
+plt.plot(np.arange(1, 9), np.cumsum(pca.explained_variance_ratio_))
 plt.xlabel('Número de componentes')
 plt.ylabel('Variância explicada cumulativa')
-plt.title('Análise da variância explicada com PCA\n(normalização MinMax)', size=16)
+plt.title('Análise da variância explicada com PCA\n(normalização MinMax)', 
+          size=16)
 plt.show()
