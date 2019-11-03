@@ -13,19 +13,10 @@ from sklearn.metrics import confusion_matrix, classification_report
 seed = 10
 
 datasetTrain = pandas.read_csv("Dataset_processado/dataset_treino_processado.csv")
-datasetTest = pandas.read_csv("Dataset_processado/dataset_teste_processado.csv")
-fullDataset = datasetTest.append(datasetTrain)
-
 kfold = model_selection.StratifiedKFold(n_splits=10, random_state=seed)
 
 X_train = datasetTrain.values[:, 0:8]
 Y_train = datasetTrain.values[:, 8]
-
-X_test = datasetTest.values[:, 0:8]
-Y_test = datasetTest.values[:, 8]
-
-X = fullDataset.values[:, 0:8]
-Y = fullDataset.values[:, 8]
 
 mlp = MLPClassifier(
         hidden_layer_sizes=(10,10),
@@ -36,12 +27,11 @@ mlp = MLPClassifier(
         )
 
 mlp = mlp.fit(X_train,Y_train)
-Y_test_prediction = mlp.predict(X_test)
+Y_prediction = mlp.predict(X_train)
 print("Acurácia de treinamento: %0.3f" %  mlp.score(X_train, Y_train))
-print("Acurácia de teste: %0.3f" %  mlp.score(X_test, Y_test))
 
-resultsDTC = model_selection.cross_val_score(mlp, X, Y, cv=kfold)
+resultsDTC = model_selection.cross_val_score(mlp, X_train, Y_train, cv=kfold)
 print(resultsDTC)
 print(resultsDTC.mean())
-print("Clasification report:\n", classification_report(Y_test, Y_test_prediction))
-print("Confussion matrix:\n", confusion_matrix(Y_test, Y_test_prediction))
+print("Clasification report:\n", classification_report(Y_train, Y_prediction))
+print("Confussion matrix:\n", confusion_matrix(Y_train, Y_prediction))
