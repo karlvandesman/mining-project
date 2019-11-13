@@ -25,13 +25,16 @@ kfold = model_selection.StratifiedKFold(n_splits=10, random_state=seed)
 X_train = datasetTrain.values[:, 0:8]
 Y_train = datasetTrain.values[:, 8]
 
-max_d = np.arange(5, 22)
+#%% Testing the max_depth parameter
+
+max_d = np.arange(1, 25)
 rfc_mcc_train = []
 rfc_mcc_val = []
 
 for i, k in enumerate(max_d):
     print(" ----------> max_depth =", k)
-    rfc = RandomForestClassifier(criterion='entropy', max_depth=k, n_estimators=21, random_state=seed)
+    rfc = RandomForestClassifier(criterion='entropy', max_depth=k, 
+                                 n_estimators=21, random_state=seed)
     rfc = rfc.fit(X_train, Y_train)
     
     Y_pred_train = rfc.predict(X_train)
@@ -40,15 +43,13 @@ for i, k in enumerate(max_d):
     rfc_mcc_train.append(mcc_train)
     print("MCC train: %0.3f" %  rfc_mcc_train[i])
     
-    resultsRFC = model_selection.cross_val_score(rfc, X_train, Y_train, cv=kfold, scoring=make_scorer(matthews_corrcoef))
+    resultsRFC = model_selection.cross_val_score(rfc, X_train, Y_train, 
+                                                 cv=kfold, scoring=\
+                                                 make_scorer(matthews_corrcoef))
 
     print('MCC k-fold mean:', resultsRFC.mean())
     
     rfc_mcc_val.append(resultsRFC.mean())
-    
-    Y_prediction = rfc.predict(X_train)
-#    print("Clasification report:\n", classification_report(Y_train, Y_prediction))
-#    print("Confussion matrix:\n", confusion_matrix(Y_train, Y_prediction))
 
 line1, = plt.plot(max_d, rfc_mcc_train, 'b', label='Train score')
 line2, = plt.plot(max_d, rfc_mcc_val, 'r', label='Validation score')
@@ -57,3 +58,13 @@ plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
 plt.ylabel('MCC score')
 plt.xlabel('max_depth')
 plt.show()
+
+#%% Using the best combinatino of parameters to predict
+
+rf = RandomForestClassifier(max_depth=11, n_estimators=21, random_state=seed)
+
+rf.fit(X_train, Y_train)
+y_pred = rfc.predict(X_train)
+
+print("Clasification report:\n", classification_report(Y_train, y_pred))
+print("Confusion matrix:\n", confusion_matrix(Y_train, y_pred))
