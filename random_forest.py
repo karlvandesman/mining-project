@@ -14,6 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import matthews_corrcoef
 from matplotlib.legend_handler import HandlerLine2D
 from sklearn.metrics import make_scorer
+from sklearn.model_selection import train_test_split
 
 import matplotlib.pyplot as plt
 
@@ -59,12 +60,16 @@ plt.ylabel('MCC score')
 plt.xlabel('max_depth')
 plt.show()
 
-#%% Using the best combinatino of parameters to predict
+#%% Using the best combination of parameters to predict
 
-rf = RandomForestClassifier(max_depth=11, n_estimators=21, random_state=seed)
+X_train, X_val, y_train, y_val = train_test_split(X_train, Y_train, 
+                                                  test_size=0.2, 
+                                                  random_state=seed)
 
-rf.fit(X_train, Y_train)
-y_pred = rfc.predict(X_train)
+rfc = RandomForestClassifier(max_depth=11, n_estimators=21, random_state=seed)
 
-print("Clasification report:\n", classification_report(Y_train, y_pred))
-print("Confusion matrix:\n", confusion_matrix(Y_train, y_pred))
+rfc.fit(X_train, y_train)
+y_pred_val = rfc.predict(X_val)
+
+print("Clasification report:\n", classification_report(y_val, y_pred_val))
+print("Confusion matrix:\n", confusion_matrix(y_val, y_pred_val))
