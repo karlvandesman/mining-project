@@ -14,13 +14,12 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
-import seaborn
 
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 seed = 10
 
-datasetTrain = pandas.read_csv("../Dataset_processado/dataset_treino_processado.csv")
+datasetTrain = pd.read_csv("../Dataset_processado/dataset_treino_processado.csv")
 kfold = StratifiedKFold(n_splits=10, random_state=seed)
 
 X = datasetTrain.values[:, 0:8]
@@ -57,7 +56,7 @@ for train_index, val_index in rkf.split(X, y):
     
     i += 1
     
-performance_train = np.asarray([ np.mean(performance_train[i:i+10]) 
+performance_train = np.asarray([ np.mean(performance_train[i:i+10])     
                                     for i in range(0, 10*k_max, 10) ])
 
 performance_val = np.asarray([ np.mean(performance_val[i:i+10]) 
