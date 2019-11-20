@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 seed = 10
 
-datasetTrain = pandas.read_csv("Dataset_processado/dataset_treino_processado.csv")
+datasetTrain = pandas.read_csv("../Dataset_processado/dataset_treino_processado.csv")
 kfold = model_selection.StratifiedKFold(n_splits=10, random_state=seed)
 
 X_train = datasetTrain.values[:, 0:8]

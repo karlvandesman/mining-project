@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 seed=10
 
-datasetTrain = pd.read_csv("Dataset_processado/dataset_treino_processado.csv")
+datasetTrain = pandas.read_csv("../Dataset_processado/dataset_treino_processado.csv")
 kfold = StratifiedKFold(n_splits=10, random_state=seed)
 
 X_train = datasetTrain.values[:, 0:8]
