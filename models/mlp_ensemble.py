@@ -6,7 +6,7 @@ Created on Sat Nov  9 18:53:37 2019
 @author: note
 """
 
-import pandas
+import pandas as pd
 from sklearn import model_selection
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, classification_report
@@ -103,7 +103,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 
 seed = 10
 
-datasetTrain = pandas.read_csv("Dataset_processado/dataset_treino_processado.csv")
+datasetTrain = pd.read_csv("../Dataset_processado/dataset_treino_processado.csv")
 kfold = model_selection.StratifiedKFold(n_splits=10, random_state=seed)
 
 X_train = datasetTrain.values[:, 0:8]
