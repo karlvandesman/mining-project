@@ -50,8 +50,8 @@ for train_index, val_index in rkf.split(X, y):
     performance_train.append(mcc_train)
     performance_val.append(mcc_val)
     
-    print('MCC score train for k=%d: %.5f'%(i//10, performance_train[i-10]))
-    print('MCC score val for k=%d: %.5f'%(i//10, performance_val[i-10]))
+    print('MCC score train for max depth=%d: %.5f'%(i//10, performance_train[i-10]))
+    print('MCC score val for max depth=%d: %.5f'%(i//10, performance_val[i-10]))
     
     i += 1
     
