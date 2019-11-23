@@ -24,13 +24,18 @@ kfold = StratifiedKFold(n_splits=10, random_state=seed)
 X = datasetTrain.values[:, 0:8]
 y = datasetTrain.values[:, 8]
 
-dp_max = 15
+dp_max = 20
 
 rkf = RepeatedStratifiedKFold(n_splits=10, n_repeats=dp_max, 
                               random_state=seed)
 
-performance_train = []
-performance_val = []
+acc_train = []
+acc_val = []
+mcc_train = []
+mcc_val = []
+f1_train = []
+f1_val = []
+
 i = 10
 
 for train_index, val_index in rkf.split(X, y):
@@ -43,32 +48,61 @@ for train_index, val_index in rkf.split(X, y):
     clf.fit(X_train, y_train)
     y_pred_train = clf.predict(X_train)
     y_pred_val = clf.predict(X_val)
+
+    acc_train.append(accuracy_score(y_train, y_pred_train))
+    acc_val.append(accuracy_score(y_val, y_pred_val))
     
-    mcc_train = matthews_corrcoef(y_train, y_pred_train)
-    mcc_val = matthews_corrcoef(y_val, y_pred_val)
+    mcc_train.append(matthews_corrcoef(y_train, y_pred_train))
+    mcc_val.append(matthews_corrcoef(y_val, y_pred_val))
     
-    performance_train.append(mcc_train)
-    performance_val.append(mcc_val)
+    f1_train.append(f1_score(y_train, y_pred_train, average='macro'))
+    f1_val.append(f1_score(y_val, y_pred_val, average='macro')) 
     
-    print('MCC score train for max depth=%d: %.5f'%(i//10, performance_train[i-10]))
-    print('MCC score val for max depth=%d: %.5f'%(i//10, performance_val[i-10]))
+    #print('MCC score train for max depth=%d: %.5f'%(i//10, performance_train[i-10]))
+    #print('MCC score val for max depth=%d: %.5f'%(i//10, performance_val[i-10]))
     
     i += 1
+
+acc_train = np.asarray([ np.mean(acc_train[i:i+10])
+                        for i in range(0, 10*dp_max, 10) ])
+
+acc_val = np.asarray([ np.mean(acc_val[i:i+10])
+                        for i in range(0, 10*dp_max, 10) ])
+
+mcc_train = np.asarray([ np.mean(mcc_train[i:i+10])
+                        for i in range(0, 10*dp_max, 10) ])
+
+mcc_val = np.asarray([ np.mean(mcc_val[i:i+10])
+                        for i in range(0, 10*dp_max, 10) ])
+
+f1_train = np.asarray([ np.mean(f1_train[i:i+10])     
+                        for i in range(0, 10*dp_max, 10) ])
+
+f1_val = np.asarray([ np.mean(f1_val[i:i+10]) 
+                    for i in range(0, 10*dp_max, 10) ])
+
+#%%
+
+print('accuracy train: %s \n'%acc_train)
+print('accuracy validation: %s \n'%acc_val)
+
+print('f1 score train: %s \n'%f1_train)
+print('f1 score validation: %s \n'%f1_val)
+
+print('MCC train: %s \n'%mcc_train)
+print('MCC validation: %s \n'%mcc_val)
+
+#%%
     
-performance_train = np.asarray([ np.mean(performance_train[i:i+10])     
-                                    for i in range(0, 10*dp_max, 10) ])
-
-performance_val = np.asarray([ np.mean(performance_val[i:i+10]) 
-                                for i in range(0, 10*dp_max, 10) ])
-
 from matplotlib.legend_handler import HandlerLine2D
 
-line1, = plt.plot(range(1, dp_max+1), performance_train, 'b', label='Train score')
-line2, = plt.plot(range(1, dp_max+1), performance_val, 'r', label='Validation score')
+line1, = plt.plot(range(1, dp_max+1), acc_train, 'b', label='Train score')
+line2, = plt.plot(range(1, dp_max+1), acc_val, 'r', label='Validation score')
 
 plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
-plt.ylabel('MCC score')
+plt.ylabel('Accuracy')
 plt.xlabel('max_depth')
+plt.xticks(np.arange(1, dp_max+1, step=2))
 plt.show()
 
 #%%    
