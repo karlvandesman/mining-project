@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import median_absolute_deviation, kruskal
 
-dt_scores = [0.96920738, 0.96653356, 0.96292071, 0.97071687,0.96691386, 0.96995627, 0.96957597, 0.96482221, 0.96709776, 0.96442838]
+dt_scores = [0.96920738, 0.96653356, 0.96292071, 0.97071687, 0.96691386, 0.96995627, 0.96957597, 0.96482221, 0.96709776, 0.96442838]
 kn_scores = [0.98403345, 0.98573873, 0.98554858, 0.98725994, 0.98478798, 0.98630918, 0.98573873, 0.98668948, 0.98611639, 0.98516264]
 rf_scores = [0.97138001, 0.97772432, 0.96500273, 0.97610468, 0.96657374, 0.97375539, 0.97134617, 0.96987115, 0.97408799, 0.96811699]
 ml_scores = [0.98213267, 0.98497813, 0.98326678, 0.98459783, 0.98155543, 0.98364708, 0.98345693, 0.98326678, 0.98212248, 0.98345064]
@@ -19,7 +19,7 @@ mean = np.mean(full_scores)
 std = np.std(full_scores)
 mad = median_absolute_deviation(full_scores)
 print(f"Mean: {mean}\nDeviation: {std}\nMedian Deviation: {mad}\n")
-    
+
 stat, p = kruskal(dt_scores, kn_scores, rf_scores, ml_scores, he_scores, me_scores)
 print('Kruskal-Wallis Statistics=%.3f, p=%.3f' % (stat, p))
 # interpret
@@ -28,3 +28,26 @@ if p > alpha:
 	print('Same distributions (fail to reject H0)')
 else:
 	print('Different distributions (reject H0)')
+
+
+# f1 score analysis
+f1_means = [0.97, 0.99, 0.98, 0.98, 0.99, 0.99]
+f1_c1 = [0.94, 0.98, 0.97, 0.97, 0.98, 0.98]
+f1_c2 = [0.88, 0.98, 0.99, 0.98, 0.98, 0.98]
+f1_c3 = [1, 1, 1, 1, 1, 1]
+f1_c4 = [0.61, 0.85, 0.74, 0.76, 0.80, 0.78]
+
+plt.boxplot(f1_means, patch_artist=True, labels=["f1 means"])
+plt.show()
+
+plt.boxplot(f1_c1, patch_artist=True, labels=["f1 class 1"])
+plt.show()
+
+plt.boxplot(f1_c2, patch_artist=True, labels=["f1 class 2"])
+plt.show()
+
+plt.boxplot(f1_c3, patch_artist=True, labels=["f1 class 3"])
+plt.show()
+
+plt.boxplot(f1_c4, patch_artist=True, labels=["f1 class 4"])
+plt.show()
