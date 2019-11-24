@@ -7,10 +7,8 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import f1_score
-from sklearn.metrics import make_scorer
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import cross_val_score
 import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import tree
@@ -24,7 +22,7 @@ kfold = StratifiedKFold(n_splits=10, random_state=seed)
 X = datasetTrain.values[:, 0:8]
 y = datasetTrain.values[:, 8]
 
-dp_max = 20
+dp_max = 16
 
 rkf = RepeatedStratifiedKFold(n_splits=10, n_repeats=dp_max, 
                               random_state=seed)
@@ -51,12 +49,12 @@ for train_index, val_index in rkf.split(X, y):
 
     acc_train.append(accuracy_score(y_train, y_pred_train))
     acc_val.append(accuracy_score(y_val, y_pred_val))
+
+    f1_train.append(f1_score(y_train, y_pred_train, average='macro'))
+    f1_val.append(f1_score(y_val, y_pred_val, average='macro')) 
     
     mcc_train.append(matthews_corrcoef(y_train, y_pred_train))
     mcc_val.append(matthews_corrcoef(y_val, y_pred_val))
-    
-    f1_train.append(f1_score(y_train, y_pred_train, average='macro'))
-    f1_val.append(f1_score(y_val, y_pred_val, average='macro')) 
     
     #print('MCC score train for max depth=%d: %.5f'%(i//10, performance_train[i-10]))
     #print('MCC score val for max depth=%d: %.5f'%(i//10, performance_val[i-10]))
@@ -92,17 +90,32 @@ print('f1 score validation: %s \n'%f1_val)
 print('MCC train: %s \n'%mcc_train)
 print('MCC validation: %s \n'%mcc_val)
 
-#%%
-    
-from matplotlib.legend_handler import HandlerLine2D
+#%% Create learning curves
 
-line1, = plt.plot(range(1, dp_max+1), acc_train, 'b', label='Train score')
-line2, = plt.plot(range(1, dp_max+1), acc_val, 'r', label='Validation score')
+x = range(1, dp_max+1)
 
-plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+plt.figure(1)
+plt.plot(x, acc_train, 'b', label='Train score')
+plt.plot(x, acc_val, 'r', label='Validation score')
 plt.ylabel('Accuracy')
 plt.xlabel('max_depth')
-plt.xticks(np.arange(1, dp_max+1, step=2))
+plt.legend(loc='best')
+plt.show()
+
+plt.figure(2)
+plt.plot(x, f1_train, 'b', label='Train score')
+plt.plot(x, f1_val, 'r', label='Validation score')
+plt.ylabel('F1 score')
+plt.xlabel('max_depth')
+plt.legend(loc='best')
+plt.show()
+
+plt.figure(3)
+plt.plot(x, mcc_train, 'b', label='Train score')
+plt.plot(x, mcc_val, 'r', label='Validation score')
+plt.ylabel('MCC score')
+plt.xlabel('max_depth')
+plt.legend(loc='best')
 plt.show()
 
 #%%    

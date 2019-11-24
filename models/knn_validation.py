@@ -8,10 +8,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import f1_score
-from sklearn.metrics import make_scorer
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import cross_val_score
 import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -25,13 +23,18 @@ kfold = StratifiedKFold(n_splits=10, random_state=seed)
 X = datasetTrain.values[:, 0:8]
 y = datasetTrain.values[:, 8]
 
-k_max = 15
+k_max = 20
 
 rkf = RepeatedStratifiedKFold(n_splits=10, n_repeats=k_max, 
                               random_state=seed)
 
-performance_train = []
-performance_val = []
+acc_train = []
+acc_val = []
+mcc_train = []
+mcc_val = []
+f1_train = []
+f1_val = []
+
 i = 10
 
 for train_index, val_index in rkf.split(X, y):
@@ -45,32 +48,77 @@ for train_index, val_index in rkf.split(X, y):
     y_pred_train = knn.predict(X_train)
     y_pred_val = knn.predict(X_val)
     
-    mcc_train = matthews_corrcoef(y_train, y_pred_train)
-    mcc_val = matthews_corrcoef(y_val, y_pred_val)
+    acc_train.append(accuracy_score(y_train, y_pred_train))
+    acc_val.append(accuracy_score(y_val, y_pred_val))
+
+    f1_train.append(f1_score(y_train, y_pred_train, average='macro'))
+    f1_val.append(f1_score(y_val, y_pred_val, average='macro')) 
     
-    performance_train.append(mcc_train)
-    performance_val.append(mcc_val)
+    mcc_train.append(matthews_corrcoef(y_train, y_pred_train))
+    mcc_val.append(matthews_corrcoef(y_val, y_pred_val))
     
-    print('MCC score train for k=%d: %.5f'%(i//10, performance_train[i-10]))
-    print('MCC score val for k=%d: %.5f'%(i//10, performance_val[i-10]))
+    print('MCC score train for k=%d: %.5f'%(i//10, mcc_train[i-10]))
+    print('MCC score val for k=%d: %.5f'%(i//10, mcc_val[i-10]))
     
     i += 1
     
-performance_train = np.asarray([ np.mean(performance_train[i:i+10])     
-                                    for i in range(0, 10*k_max, 10) ])
+acc_train = np.asarray([ np.mean(acc_train[i:i+10])
+                        for i in range(0, 10*k_max, 10) ])
 
-performance_val = np.asarray([ np.mean(performance_val[i:i+10]) 
-                                for i in range(0, 10*k_max, 10) ])
+acc_val = np.asarray([ np.mean(acc_val[i:i+10])
+                        for i in range(0, 10*k_max, 10) ])
 
-from matplotlib.legend_handler import HandlerLine2D
+mcc_train = np.asarray([ np.mean(mcc_train[i:i+10])
+                        for i in range(0, 10*k_max, 10) ])
 
-line1, = plt.plot(range(1, k_max+1), performance_train, 'b', label='Train score')
-line2, = plt.plot(range(1, k_max+1), performance_val, 'r', label='Validation score')
+mcc_val = np.asarray([ np.mean(mcc_val[i:i+10])
+                        for i in range(0, 10*k_max, 10) ])
 
-plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+f1_train = np.asarray([ np.mean(f1_train[i:i+10])     
+                        for i in range(0, 10*k_max, 10) ])
+
+f1_val = np.asarray([ np.mean(f1_val[i:i+10]) 
+                    for i in range(0, 10*k_max, 10) ])
+
+#%%
+
+print('accuracy train: %s \n'%acc_train)
+print('accuracy validation: %s \n'%acc_val)
+
+print('f1 score train: %s \n'%f1_train)
+print('f1 score validation: %s \n'%f1_val)
+
+print('MCC train: %s \n'%mcc_train)
+print('MCC validation: %s \n'%mcc_val)    
+
+#%% Create learning curves
+
+x = range(1, k_max+1)
+
+plt.figure(1)
+plt.plot(x, acc_train, 'b', label='Train score')
+plt.plot(x, acc_val, 'r', label='Validation score')
+plt.ylabel('Accuracy')
+plt.xlabel('n_neighbors')
+plt.legend(loc='best')
+plt.show()
+
+plt.figure(2)
+plt.plot(x, f1_train, 'b', label='Train score')
+plt.plot(x, f1_val, 'r', label='Validation score')
+plt.ylabel('F1 score')
+plt.xlabel('n_neighbors')
+plt.legend(loc='best')
+plt.show()
+
+plt.figure(3)
+plt.plot(x, mcc_train, 'b', label='Train score')
+plt.plot(x, mcc_val, 'r', label='Validation score')
 plt.ylabel('MCC score')
 plt.xlabel('n_neighbors')
+plt.legend(loc='best')
 plt.show()
+
 
 #%%    
 
