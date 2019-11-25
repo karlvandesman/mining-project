@@ -23,7 +23,7 @@ kfold = StratifiedKFold(n_splits=10, random_state=seed)
 X = datasetTrain.values[:, 0:8]
 y = datasetTrain.values[:, 8]
 
-k_max = 20
+k_max = 18
 
 rkf = RepeatedStratifiedKFold(n_splits=10, n_repeats=k_max, 
                               random_state=seed)
@@ -57,8 +57,8 @@ for train_index, val_index in rkf.split(X, y):
     mcc_train.append(matthews_corrcoef(y_train, y_pred_train))
     mcc_val.append(matthews_corrcoef(y_val, y_pred_val))
     
-    print('MCC score train for k=%d: %.5f'%(i//10, mcc_train[i-10]))
-    print('MCC score val for k=%d: %.5f'%(i//10, mcc_val[i-10]))
+#    print('MCC score train for k=%d: %.5f'%(i//10, mcc_train[i-10]))
+#    print('MCC score val for k=%d: %.5f'%(i//10, mcc_val[i-10]))
     
     i += 1
     
@@ -81,6 +81,7 @@ f1_val = np.asarray([ np.mean(f1_val[i:i+10])
                     for i in range(0, 10*k_max, 10) ])
 
 #%%
+print('Range n_neighbors: from %d to %d'% (1, k_max))
 
 print('accuracy train: %s \n'%acc_train)
 print('accuracy validation: %s \n'%acc_val)
@@ -101,6 +102,8 @@ plt.plot(x, acc_val, 'r', label='Validation score')
 plt.ylabel('Accuracy')
 plt.xlabel('n_neighbors')
 plt.legend(loc='best')
+plt.xticks(np.arange(min(x), max(x), 2))
+plt.grid()
 plt.show()
 
 plt.figure(2)
@@ -109,6 +112,8 @@ plt.plot(x, f1_val, 'r', label='Validation score')
 plt.ylabel('F1 score')
 plt.xlabel('n_neighbors')
 plt.legend(loc='best')
+plt.xticks(np.arange(min(x), max(x), 2))
+plt.grid()
 plt.show()
 
 plt.figure(3)
@@ -117,6 +122,8 @@ plt.plot(x, mcc_val, 'r', label='Validation score')
 plt.ylabel('MCC score')
 plt.xlabel('n_neighbors')
 plt.legend(loc='best')
+plt.xticks(np.arange(min(x), max(x), 2))
+plt.grid()
 plt.show()
 
 
