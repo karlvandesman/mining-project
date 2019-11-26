@@ -11,7 +11,6 @@ from sklearn.metrics import f1_score
 import matplotlib.pyplot as plt
 
 import numpy as np
-from sklearn.metrics import confusion_matrix, classification_report
 
 from sklearn.model_selection import RepeatedStratifiedKFold
 
@@ -22,6 +21,8 @@ kfold = StratifiedKFold(n_splits=10, random_state=seed)
 
 X = datasetTrain.values[:, 0:8]
 y = datasetTrain.values[:, 8]
+
+#%%
 
 k_max = 18
 
@@ -125,19 +126,3 @@ plt.legend(loc='best')
 plt.xticks(np.arange(min(x), max(x), 2))
 plt.grid()
 plt.show()
-
-
-#%%    
-
-X_train, X_val, y_train, y_val = train_test_split(X, y, 
-                                                  test_size=0.3, 
-                                                  random_state=seed)
-
-
-knn = KNeighborsClassifier(n_neighbors=1)
-knn.fit(X_train, y_train)
-
-y_pred_val = knn.predict(X_val)
-
-print("Classification report:\n", classification_report(y_val, y_pred_val))
-print("Confussion matrix:\n", confusion_matrix(y_val, y_pred_val))
