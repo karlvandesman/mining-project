@@ -25,6 +25,8 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import kruskal
 
+from sklearn.metrics import confusion_matrix, classification_report
+
 seed = 10
 
 datasetTrain = pd.read_csv("../Dataset_processado/dataset_treino_processado.csv")
@@ -147,35 +149,71 @@ for train_index, val_index in rkf.split(X, y):
 
 #%%
 
-clf_acc = np.array([np.asarray(dt_acc_val), np.asarray(knn_acc_val), np.asarray(mlp_acc_val), np.asarray(rfc_acc_val), 
-                 np.asarray(mlpE_acc_val), np.asarray(hetEns_acc_val)])
+#clf_acc = np.array([np.asarray(dt_acc_val), np.asarray(knn_acc_val), np.asarray(mlp_acc_val), np.asarray(rfc_acc_val), 
+#                 np.asarray(mlpE_acc_val), np.asarray(hetEns_acc_val)])
 
-clf_f1 = np.array([dt_f1_val, knn_f1_val, mlp_f1_val, rfc_f1_val, 
-                 mlpE_f1_val, hetEns_f1_val])
+clf_acc = [dt_acc_val, knn_acc_val, mlp_acc_val, rfc_acc_val, 
+           mlpE_acc_val, hetEns_acc_val]
+    
+clf_f1 = [dt_f1_val, knn_f1_val, mlp_f1_val, rfc_f1_val, 
+          mlpE_f1_val, hetEns_f1_val]
 
-clf_mcc = np.array([dt_mcc_val, knn_mcc_val, mlp_mcc_val, rfc_mcc_val, 
-                 mlpE_mcc_val, hetEns_mcc_val])
+clf_mcc = [dt_mcc_val, knn_mcc_val, mlp_mcc_val, rfc_mcc_val, 
+           mlpE_mcc_val, hetEns_mcc_val]
+
+#%% Mean and std (for 1 repeated k-fold)
+
+x = ['DecTree','KNN', 'MLP', 'RandForest', 'MLPEns', 'HetEns']
+
+clf_acc_mean = np.mean(clf_acc, axis=1)
+clf_f1_mean = np.mean(clf_f1, axis=1)
+clf_mcc_mean = np.mean(clf_mcc, axis=1)
+
+clf_acc_std = np.std(clf_acc, axis=1)
+clf_f1_std = np.std(clf_f1, axis=1)
+clf_mcc_std = np.std(clf_mcc, axis=1)
 
 plt.figure(1)
+plt.errorbar(x, clf_acc_mean, yerr=clf_acc_std, fmt='.b', ecolor='r',
+             marker='o')
+plt.grid()
+plt.ylabel('Acurácia')
+plt.show()
+
+plt.figure(2)
+plt.errorbar(x, clf_f1_mean, yerr=clf_f1_std, fmt='.b', ecolor='r',
+             marker='o')
+plt.grid()
+plt.ylabel('F1 score')
+plt.show()
+
+plt.figure(3)
+plt.errorbar(x, clf_mcc_mean, yerr=clf_mcc_std, fmt='.b', ecolor='r',
+             marker='o')
+plt.grid()
+plt.ylabel('MCC')
+plt.show()
+
+
+#%% Boxplot
+
+plt.figure(4)
 labels = ['DecTree','KNN', 'MLP', 'RandForest', 'MLPEns', 'HetEns']
 plt.boxplot(clf_acc, patch_artist=True, labels=labels)
 plt.ylabel('Acurácia')
 plt.show()    
 
-plt.figure(2)
+plt.figure(5)
 labels = ['DecTree','KNN', 'MLP', 'RandForest', 'MLPEns', 'HetEns']
 plt.boxplot(clf_f1, patch_artist=True, labels=labels)
 plt.ylabel('F1 score')
 plt.show()    
 
-plt.figure(3)
+plt.figure(6)
 labels = ['DecTree','KNN', 'MLP', 'RandForest', 'MLPEns', 'HetEns']
 plt.ylabel('MCC score')
 plt.boxplot(clf_mcc, patch_artist=True, labels=labels)
 plt.show()
-
-#%%
-clf_acc_mean = clf_acc.mean(axis=0)
 
 
 #%%
@@ -199,69 +237,33 @@ if p_acc > alpha:
 else:
 	print('Different distributions (reject H0)')
 
-
-#%% Calculating the mean values for the k-fold
     
-### Decision Tree
-dt_acc_val = np.asarray([ np.mean(dt_acc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
+#%% Application for the final test
 
-dt_f1_val = np.asarray([ np.mean(dt_f1_val[i:i+fold])     
-                        for i in range(0, fold*n_repeats, fold) ])
+datasetTest = pd.read_csv("../Dataset_processado/dataset_teste_processado.csv")
 
-dt_mcc_val = np.asarray([ np.mean(dt_mcc_val[i:i+fold]) 
-                        for i in range(0, fold*n_repeats, fold) ])
+X_train = datasetTrain.values[:, 0:8]
+y_train = datasetTrain.values[:, 8]
 
-### K-Nearest Neighbors
-knn_acc_val = np.asarray([ np.mean(knn_acc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
+X_test = datasetTrain.values[:, 0:8]
+y_test = datasetTrain.values[:, 8]
 
-knn_f1_val = np.asarray([ np.mean(knn_f1_val[i:i+fold])     
-                        for i in range(0, fold*n_repeats, fold) ])
+knn = KNeighborsClassifier(n_neighbors=2)
+knn.fit(X_train, y_train)
 
-knn_mcc_val = np.asarray([ np.mean(knn_mcc_val[i:i+fold]) 
-                        for i in range(0, fold*n_repeats, fold) ])
+y_pred_test = knn.predict(X_test)
 
-### MLP
-mlp_acc_val = np.asarray([ np.mean(mlp_acc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
+acc_test = accuracy_score(y_test, y_pred_test)
+f1_test = f1_score(y_test, y_pred_test, average='macro')
+mcc_test = matthews_corrcoef(y_test, y_pred_test)
 
-mlp_f1_val = np.asarray([ np.mean(mlp_f1_val[i:i+fold])     
-                        for i in range(0, fold*n_repeats, fold) ])
-
-mlp_mcc_val = np.asarray([ np.mean(mlp_mcc_val[i:i+fold]) 
-                        for i in range(0, fold*n_repeats, fold) ])
-
-### Random Forest
-rfc_acc_val = np.asarray([ np.mean(rfc_acc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
-
-rfc_f1_val = np.asarray([ np.mean(rfc_f1_val[i:i+fold])     
-                        for i in range(0, fold*n_repeats, fold) ])
-
-rfc_mcc_val = np.asarray([ np.mean(rfc_mcc_val[i:i+fold]) 
-                        for i in range(0, fold*n_repeats, fold) ])
-
-### MLP Ensemble
-mlpE_acc_val = np.asarray([ np.mean(mlpE_acc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
-
-mlpE_f1_val = np.asarray([ np.mean(mlpE_f1_val[i:i+fold])     
-                        for i in range(0, fold*n_repeats, fold) ])
-
-mlpE_mcc_val = np.asarray([ np.mean(mlpE_mcc_val[i:i+fold]) 
-                        for i in range(0, fold*n_repeats, fold) ])
-
-### Heterogeneous Ensemble
-hetEns_acc_val = np.asarray([ np.mean(hetEns_acc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
-
-hetEns_f1_val = np.asarray([ np.mean(hetEns_f1_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
-
-hetEns_mcc_val = np.asarray([ np.mean(hetEns_mcc_val[i:i+fold])
-                        for i in range(0, fold*n_repeats, fold) ])
-
-
-    
 #%%
+print('Final result for KNN with k=2 with test data set')
+
+print("Classification report:\n", classification_report(y_test, y_pred_test))
+print("Confussion matrix:\n", confusion_matrix(y_test, y_pred_test))
+print()
+
+print('Accuracy for test: %.5f%%'%(100*acc_test))
+print('F1 score for test: %.5f%%'%(100*f1_test))
+print('MCC score for test: %.5f'%(mcc_test))
