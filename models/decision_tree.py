@@ -5,15 +5,10 @@ Created on Mon Nov  4 16:55:44 2019
 @author: eugeniap
 """
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn import neighbors
 from sklearn import model_selection
 from sklearn.model_selection import cross_val_score
 import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
-import matplotlib.pyplot as pl
-from sklearn.cluster import KMeans
-import seaborn
 from sklearn import tree
 
 seed = 10
@@ -42,7 +37,7 @@ Y_train = datasetTrain.values[:, 8]
    # print (train_accuracy)
    
 #criando arvore
-clf = tree.DecisionTreeClassifier(max_depth=10)
+clf = tree.DecisionTreeClassifier(max_depth=12)
 
 clf = clf.fit(X_train, Y_train)
 
@@ -58,7 +53,7 @@ Y_prediction = clf.predict(X_train)
 clf_cv = tree.DecisionTreeClassifier(max_depth=10)
 
 #train model  
-cv_scores = model_selection.cross_val_score(clf_cv, X_train, Y_train, cv=kfold)
+cv_scores = cross_val_score(clf_cv, X_train, Y_train, cv=kfold)
 
 #print each cv score (accuracy) and average them
 print(cv_scores)
