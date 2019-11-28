@@ -23,6 +23,7 @@ from sklearn.metrics import matthews_corrcoef
 
 import matplotlib.pyplot as plt
 
+from scikit_posthocs import posthoc_nemenyi
 from scipy.stats import kruskal
 
 from sklearn.metrics import confusion_matrix, classification_report
@@ -58,7 +59,7 @@ hetEns_acc_val = []
 hetEns_f1_val = []
 hetEns_mcc_val = []
 
-fold = 10
+fold = 20
 n_repeats = 1
 
 rkf = RepeatedStratifiedKFold(n_splits=fold, n_repeats=n_repeats, random_state=seed)
@@ -149,9 +150,6 @@ for train_index, val_index in rkf.split(X, y):
 
 #%%
 
-#clf_acc = np.array([np.asarray(dt_acc_val), np.asarray(knn_acc_val), np.asarray(mlp_acc_val), np.asarray(rfc_acc_val), 
-#                 np.asarray(mlpE_acc_val), np.asarray(hetEns_acc_val)])
-
 clf_acc = [dt_acc_val, knn_acc_val, mlp_acc_val, rfc_acc_val, 
            mlpE_acc_val, hetEns_acc_val]
     
@@ -194,7 +192,6 @@ plt.grid()
 plt.ylabel('MCC')
 plt.show()
 
-
 #%% Boxplot
 
 plt.figure(4)
@@ -226,9 +223,12 @@ stat_f1, p_f1 = kruskal(dt_f1_val, knn_f1_val, mlp_f1_val, rfc_f1_val,
 stat_mcc, p_mcc = kruskal(dt_mcc_val, knn_mcc_val, mlp_mcc_val, rfc_mcc_val, 
                   mlpE_mcc_val, hetEns_mcc_val)
 
-print('Kruskal-Wallis Statistics=%.3f, p=%.10f' % (stat_acc, p_acc))
-print('Kruskal-Wallis Statistics=%.3f, p=%.10f' % (stat_f1, p_f1))
-print('Kruskal-Wallis Statistics=%.3f, p=%.10f' % (stat_mcc, p_mcc))
+print('Kruskal-Wallis test for cross validation with k=%d'%fold)
+print()
+print('Accuracy: statistics=%.3f, p=%.20f' % (stat_acc, p_acc))
+print('F1 score: statistics=%.3f, p=%.20f' % (stat_f1, p_f1))
+print('MCC: statistics=%.3f, p=%.20f' % (stat_mcc, p_mcc))
+print()
 
 # interpret
 alpha = 0.05
@@ -236,8 +236,21 @@ if p_acc > alpha:
 	print('Same distributions (fail to reject H0)')
 else:
 	print('Different distributions (reject H0)')
+print()
 
-    
+posthoc_acc = posthoc_nemenyi(clf_acc)
+posthoc_f1 = posthoc_nemenyi(clf_f1)
+posthoc_mcc = posthoc_nemenyi(clf_mcc)
+
+print('Posthoc Nemenyi for accuracy\n', posthoc_acc)
+print()
+
+print('Posthoc Nemenyi for F1 score\n', posthoc_f1)
+print()
+
+print('Posthoc Nemenyi for MCC\n', posthoc_mcc)
+print()
+
 #%% Application for the final test
 
 datasetTest = pd.read_csv("../Dataset_processado/dataset_teste_processado.csv")
