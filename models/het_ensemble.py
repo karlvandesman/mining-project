@@ -25,9 +25,9 @@ X_train = datasetTrain.values[:, 0:8]
 Y_train = datasetTrain.values[:, 8]
 
 # Create classifiers
-dtc = DecisionTreeClassifier(max_depth=11, random_state=seed)
+dtc = DecisionTreeClassifier(max_depth=12, random_state=seed)
 knn = KNeighborsClassifier(n_neighbors=2)
-mlp = MLPClassifier(solver='lbfgs', activation='tanh', alpha=1e-5, 
+mlp = MLPClassifier(solver='lbfgs', activation='tanh', alpha=1e-3, 
                     hidden_layer_sizes=(20, 20), random_state=seed)
 
 estimators = [('dtc', dtc), ('knn', knn), ('mlp', mlp)]

@@ -243,7 +243,7 @@ X_train, X_val, y_train, y_val = train_test_split(X, y,
                                                   test_size=0.2, 
                                                   random_state=seed)
 
-rfc = RandomForestClassifier(max_depth=11, n_estimators=21, random_state=seed)
+rfc = RandomForestClassifier(max_depth=12, n_estimators=20, random_state=seed)
 
 rfc.fit(X_train, y_train)
 y_pred_val = rfc.predict(X_val)
