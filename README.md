@@ -5,6 +5,7 @@
 - Maria Eugênia (meps)
 - Mateus Silva (mmps)
 
+## Introdução
 Esse projeto descreve o processo de mineração de dados da base *Activity recognition with healthy older people using a batteryless wearable sensor*, disponível no [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Activity+recognition+with+healthy+older+people+using+a+batteryless+wearable+sensor). A base é composta de oito atributos coletados por meio de um sensor passivo, que mede a aceleração em três eixos. A partir de antenas fixadas em uma sala, são captados esses
 sinais, como apresentado na a seguir.
 
