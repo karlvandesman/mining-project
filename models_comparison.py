@@ -30,7 +30,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 seed = 10
 
-datasetTrain = pd.read_csv("../Dataset_processado/dataset_treino_processado.csv")
+datasetTrain = pd.read_csv("Dataset_processado/dataset_treino_processado.csv")
 
 X = datasetTrain.values[:, 0:8]
 y = datasetTrain.values[:, 8]
@@ -253,7 +253,7 @@ print()
 
 #%% Application for the final test
 
-datasetTest = pd.read_csv("../Dataset_processado/dataset_teste_processado.csv")
+datasetTest = pd.read_csv("Dataset_processado/dataset_teste_processado.csv")
 
 X_train = datasetTrain.values[:, 0:8]
 y_train = datasetTrain.values[:, 8]
